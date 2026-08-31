@@ -1,88 +1,131 @@
 import { forwardRef } from "react";
 import { BRAND, parseHighlights, type PostFields } from "../../lib/brand";
+import DraggableHeroImage, { type PhotoTransform } from "../DraggableHeroImage";
 
-type Props = { fields: PostFields; customImage?: string | null };
+type Props = {
+  fields: PostFields;
+  customImage?: string | null;
+  secondaryImages?: string[];
+  imagePos?: { x: number; y: number };
+  imageZoom?: number;
+  imageFit?: "cover" | "contain";
+  gridStyle?: "single" | "split" | "grid" | "quad";
+  photoTransforms?: Record<number, PhotoTransform>;
+  activeEditIndex?: number;
+  onSelectPhotoToEdit?: (index: number) => void;
+  onImagePosChange?: (pos: { x: number; y: number }) => void;
+  onPhotoPosChange?: (index: number, pos: { x: number; y: number }) => void;
+  onSelectSecondary?: (index: number) => void;
+};
 
-export const WarmTerraCard = forwardRef<HTMLDivElement, Props>(({ fields, customImage }, ref) => {
-  const property = fields.property.trim();
-  const location = fields.location.trim();
-  const price = fields.price.trim();
-  const chips = parseHighlights(fields.highlights);
-  const imageSrc = customImage || "/images/building_mediterranean_villa.png";
+export const WarmTerraCard = forwardRef<HTMLDivElement, Props>(
+  (
+    {
+      fields,
+      customImage,
+      secondaryImages = [],
+      imagePos = { x: 0, y: 0 },
+      imageZoom = 1,
+      imageFit = "contain",
+      gridStyle = "single",
+      photoTransforms = {},
+      activeEditIndex = 0,
+      onSelectPhotoToEdit = () => {},
+      onImagePosChange = () => {},
+      onPhotoPosChange = () => {},
+      onSelectSecondary = () => {},
+    },
+    ref
+  ) => {
+    const property = fields.property.trim();
+    const location = fields.location.trim();
+    const price = fields.price.trim();
+    const chips = parseHighlights(fields.highlights);
+    const imageSrc = customImage || "/images/building_mediterranean_villa.png";
 
-  return (
-    <div className="pc pc--terra" ref={ref} aria-label="Generated warm terra creative">
-      {/* Terracotta Header */}
-      <header className="wt-header">
-        <div className="wt-brand">
-          <div className="wt-logo-mark">
-            <SunIcon />
-          </div>
-          <div>
-            <div className="wt-brand-name">
-              {BRAND.name} <span>{BRAND.suffix}</span>
+    return (
+      <div className="pc pc--terra" ref={ref} aria-label="Generated warm terra creative">
+        {/* Terracotta Header */}
+        <header className="wt-header">
+          <div className="wt-brand">
+            <div className="wt-logo-mark">
+              <SunIcon />
             </div>
-            <div className="wt-brand-tag">Mediterranean &amp; Villa Collection</div>
+            <div>
+              <div className="wt-brand-name">
+                {BRAND.name} <span>{BRAND.suffix}</span>
+              </div>
+              <div className="wt-brand-tag">Mediterranean &amp; Villa Collection</div>
+            </div>
           </div>
-        </div>
-        <div className="wt-badge">Sunset Collection</div>
-      </header>
+          <div className="wt-badge">Sunset Collection</div>
+        </header>
 
-      {/* Sunset Arch Visual */}
-      <div className="wt-hero">
-        <img
+        {/* Draggable Sunset Arch Visual */}
+        <DraggableHeroImage
           src={imageSrc}
           alt="Sunset Villa"
-          className="pc-scene-img"
+          isCustom={Boolean(customImage)}
+          secondaryImages={secondaryImages}
+          imagePos={imagePos}
+          imageZoom={imageZoom}
+          imageFit={imageFit}
+          gridStyle={gridStyle}
+          photoTransforms={photoTransforms}
+          activeEditIndex={activeEditIndex}
+          onSelectPhotoToEdit={onSelectPhotoToEdit}
+          onImagePosChange={onImagePosChange}
+          onPhotoPosChange={onPhotoPosChange}
+          onSelectSecondary={onSelectSecondary}
+          overlayElement={<div className="wt-hero-overlay" />}
         />
-        <div className="wt-hero-overlay" />
-      </div>
 
-      {/* Body Details */}
-      <div className="wt-body">
-        <div className="wt-body-top">
-          <span className="wt-eyebrow">Private Villa Sanctuary</span>
-          <h1 className="wt-title">{property || "Your property name"}</h1>
-          <p className="wt-location">
-            <MapPinIcon />
-            <span>{location || "Location, City"}</span>
-          </p>
+        {/* Body Details */}
+        <div className="wt-body">
+          <div className="wt-body-top">
+            <span className="wt-eyebrow">Private Villa Sanctuary</span>
+            <h1 className="wt-title">{property || "Your property name"}</h1>
+            <p className="wt-location">
+              <MapPinIcon />
+              <span>{location || "Location, City"}</span>
+            </p>
 
-          <div className="wt-chips">
-            {chips.length > 0 ? (
-              chips.map((c, i) => (
-                <span className="wt-chip" key={i}>
-                  {c}
-                </span>
-              ))
-            ) : (
-              <span className="wt-chip wt-chip--empty">Add highlights</span>
-            )}
+            <div className="wt-chips">
+              {chips.length > 0 ? (
+                chips.map((c, i) => (
+                  <span className="wt-chip" key={i}>
+                    {c}
+                  </span>
+                ))
+              ) : (
+                <span className="wt-chip wt-chip--empty">Add highlights</span>
+              )}
+            </div>
+          </div>
+
+          {/* Price Card */}
+          <div className="wt-price-card">
+            <div className="wt-price-label">Starting Price</div>
+            <div className="wt-price-val">{price || "Price on request"}</div>
           </div>
         </div>
 
-        {/* Price Card */}
-        <div className="wt-price-card">
-          <div className="wt-price-label">Starting Price</div>
-          <div className="wt-price-val">{price || "Price on request"}</div>
-        </div>
+        {/* Footer Contact */}
+        <footer className="wt-footer">
+          <div className="wt-contact-item">
+            <PhoneIcon />
+            <span>{BRAND.phone}</span>
+          </div>
+          <div className="wt-footer-divider" />
+          <div className="wt-contact-item">
+            <GlobeIcon />
+            <span>{BRAND.website}</span>
+          </div>
+        </footer>
       </div>
-
-      {/* Footer Contact */}
-      <footer className="wt-footer">
-        <div className="wt-contact-item">
-          <PhoneIcon />
-          <span>{BRAND.phone}</span>
-        </div>
-        <div className="wt-footer-divider" />
-        <div className="wt-contact-item">
-          <GlobeIcon />
-          <span>{BRAND.website}</span>
-        </div>
-      </footer>
-    </div>
-  );
-});
+    );
+  }
+);
 
 WarmTerraCard.displayName = "WarmTerraCard";
 

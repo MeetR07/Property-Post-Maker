@@ -1,90 +1,133 @@
 import { forwardRef } from "react";
 import { BRAND, parseHighlights, type PostFields } from "../../lib/brand";
+import DraggableHeroImage, { type PhotoTransform } from "../DraggableHeroImage";
 
-type Props = { fields: PostFields; customImage?: string | null };
+type Props = {
+  fields: PostFields;
+  customImage?: string | null;
+  secondaryImages?: string[];
+  imagePos?: { x: number; y: number };
+  imageZoom?: number;
+  imageFit?: "cover" | "contain";
+  gridStyle?: "single" | "split" | "grid" | "quad";
+  photoTransforms?: Record<number, PhotoTransform>;
+  activeEditIndex?: number;
+  onSelectPhotoToEdit?: (index: number) => void;
+  onImagePosChange?: (pos: { x: number; y: number }) => void;
+  onPhotoPosChange?: (index: number, pos: { x: number; y: number }) => void;
+  onSelectSecondary?: (index: number) => void;
+};
 
-export const MetroDarkCard = forwardRef<HTMLDivElement, Props>(({ fields, customImage }, ref) => {
-  const property = fields.property.trim();
-  const location = fields.location.trim();
-  const price = fields.price.trim();
-  const chips = parseHighlights(fields.highlights);
-  const imageSrc = customImage || "/images/building_metro_skyline.png";
+export const MetroDarkCard = forwardRef<HTMLDivElement, Props>(
+  (
+    {
+      fields,
+      customImage,
+      secondaryImages = [],
+      imagePos = { x: 0, y: 0 },
+      imageZoom = 1,
+      imageFit = "contain",
+      gridStyle = "single",
+      photoTransforms = {},
+      activeEditIndex = 0,
+      onSelectPhotoToEdit = () => {},
+      onImagePosChange = () => {},
+      onPhotoPosChange = () => {},
+      onSelectSecondary = () => {},
+    },
+    ref
+  ) => {
+    const property = fields.property.trim();
+    const location = fields.location.trim();
+    const price = fields.price.trim();
+    const chips = parseHighlights(fields.highlights);
+    const imageSrc = customImage || "/images/building_metro_skyline.png";
 
-  return (
-    <div className="pc pc--metro" ref={ref} aria-label="Generated metropolitan dark creative">
-      {/* Metro Header */}
-      <header className="md-header">
-        <div className="md-brand">
-          <div className="md-logo-mark">
-            <BuildingIcon />
-          </div>
-          <div>
-            <div className="md-brand-name">
-              {BRAND.name} <span>{BRAND.suffix}</span>
+    return (
+      <div className="pc pc--metro" ref={ref} aria-label="Generated metropolitan dark creative">
+        {/* Metro Header */}
+        <header className="md-header">
+          <div className="md-brand">
+            <div className="md-logo-mark">
+              <BuildingIcon />
             </div>
-            <div className="md-brand-tag">Metropolitan Residences</div>
+            <div>
+              <div className="md-brand-name">
+                {BRAND.name} <span>{BRAND.suffix}</span>
+              </div>
+              <div className="md-brand-tag">Metropolitan Residences</div>
+            </div>
           </div>
-        </div>
-        <div className="md-badge">Skyline Edition</div>
-      </header>
+          <div className="md-badge">Skyline Edition</div>
+        </header>
 
-      {/* Skyline Hero Visual */}
-      <div className="md-hero">
-        <img
+        {/* Draggable Skyline Hero Visual */}
+        <DraggableHeroImage
           src={imageSrc}
           alt="Metropolitan Condominium"
-          className="pc-scene-img"
+          isCustom={Boolean(customImage)}
+          secondaryImages={secondaryImages}
+          imagePos={imagePos}
+          imageZoom={imageZoom}
+          imageFit={imageFit}
+          gridStyle={gridStyle}
+          photoTransforms={photoTransforms}
+          activeEditIndex={activeEditIndex}
+          onSelectPhotoToEdit={onSelectPhotoToEdit}
+          onImagePosChange={onImagePosChange}
+          onPhotoPosChange={onPhotoPosChange}
+          onSelectSecondary={onSelectSecondary}
+          overlayElement={<div className="md-hero-overlay" />}
         />
-        <div className="md-hero-overlay" />
-      </div>
 
-      {/* Glassmorphic Body Container */}
-      <div className="md-body">
-        <div className="md-glass-panel">
-          <div className="md-body-top">
-            <span className="md-eyebrow">Ultra High-Rise Penthouse</span>
-            <h1 className="md-title">{property || "Your property name"}</h1>
-            <p className="md-location">
-              <SparklePinIcon />
-              <span>{location || "Location, City"}</span>
-            </p>
+        {/* Glassmorphic Body Container */}
+        <div className="md-body">
+          <div className="md-glass-panel">
+            <div className="md-body-top">
+              <span className="md-eyebrow">Ultra High-Rise Penthouse</span>
+              <h1 className="md-title">{property || "Your property name"}</h1>
+              <p className="md-location">
+                <SparklePinIcon />
+                <span>{location || "Location, City"}</span>
+              </p>
 
-            <div className="md-chips">
-              {chips.length > 0 ? (
-                chips.map((c, i) => (
-                  <span className="md-chip" key={i}>
-                    {c}
-                  </span>
-                ))
-              ) : (
-                <span className="md-chip md-chip--empty">Add highlights</span>
-              )}
+              <div className="md-chips">
+                {chips.length > 0 ? (
+                  chips.map((c, i) => (
+                    <span className="md-chip" key={i}>
+                      {c}
+                    </span>
+                  ))
+                ) : (
+                  <span className="md-chip md-chip--empty">Add highlights</span>
+                )}
+              </div>
+            </div>
+
+            {/* Golden Metallic Price Card */}
+            <div className="md-price-card">
+              <div className="md-price-label">Price / Valuation</div>
+              <div className="md-price-val">{price || "Price on request"}</div>
             </div>
           </div>
+        </div>
 
-          {/* Golden Metallic Price Card */}
-          <div className="md-price-card">
-            <div className="md-price-label">Price / Valuation</div>
-            <div className="md-price-val">{price || "Price on request"}</div>
+        {/* Footer Contact */}
+        <footer className="md-footer">
+          <div className="md-contact-item">
+            <PhoneIcon />
+            <span>{BRAND.phone}</span>
           </div>
-        </div>
+          <div className="md-footer-divider" />
+          <div className="md-contact-item">
+            <GlobeIcon />
+            <span>{BRAND.website}</span>
+          </div>
+        </footer>
       </div>
-
-      {/* Footer Contact */}
-      <footer className="md-footer">
-        <div className="md-contact-item">
-          <PhoneIcon />
-          <span>{BRAND.phone}</span>
-        </div>
-        <div className="md-footer-divider" />
-        <div className="md-contact-item">
-          <GlobeIcon />
-          <span>{BRAND.website}</span>
-        </div>
-      </footer>
-    </div>
-  );
-});
+    );
+  }
+);
 
 MetroDarkCard.displayName = "MetroDarkCard";
 
@@ -97,7 +140,7 @@ function BuildingIcon() {
       <line x1="9" y1="10" x2="9.01" y2="10" strokeWidth="3" />
       <line x1="15" y1="10" x2="15.01" y2="10" strokeWidth="3" />
       <line x1="9" y1="14" x2="9.01" y2="14" strokeWidth="3" />
-      <line x1="15" y1="14" x2="15.01" y2="14" strokeWidth="3" />
+      <line x1="15" y1="15" x2="15.01" y2="14" strokeWidth="3" />
       <path d="M10 22v-4h4v4" />
     </svg>
   );
@@ -125,7 +168,7 @@ function GlobeIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="#F5D061" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <line x1="2" y1="12" x2="22" y2="12" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z" />
     </svg>
   );
 }

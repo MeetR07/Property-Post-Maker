@@ -1,89 +1,132 @@
 import { forwardRef } from "react";
 import { BRAND, parseHighlights, type PostFields } from "../../lib/brand";
+import DraggableHeroImage, { type PhotoTransform } from "../DraggableHeroImage";
 
-type Props = { fields: PostFields; customImage?: string | null };
+type Props = {
+  fields: PostFields;
+  customImage?: string | null;
+  secondaryImages?: string[];
+  imagePos?: { x: number; y: number };
+  imageZoom?: number;
+  imageFit?: "cover" | "contain";
+  gridStyle?: "single" | "split" | "grid" | "quad";
+  photoTransforms?: Record<number, PhotoTransform>;
+  activeEditIndex?: number;
+  onSelectPhotoToEdit?: (index: number) => void;
+  onImagePosChange?: (pos: { x: number; y: number }) => void;
+  onPhotoPosChange?: (index: number, pos: { x: number; y: number }) => void;
+  onSelectSecondary?: (index: number) => void;
+};
 
-export const ClassicGolfCard = forwardRef<HTMLDivElement, Props>(({ fields, customImage }, ref) => {
-  const property = fields.property.trim();
-  const location = fields.location.trim();
-  const price = fields.price.trim();
-  const chips = parseHighlights(fields.highlights);
-  const imageSrc = customImage || "/images/building_golf_estate.png";
+export const ClassicGolfCard = forwardRef<HTMLDivElement, Props>(
+  (
+    {
+      fields,
+      customImage,
+      secondaryImages = [],
+      imagePos = { x: 0, y: 0 },
+      imageZoom = 1,
+      imageFit = "contain",
+      gridStyle = "single",
+      photoTransforms = {},
+      activeEditIndex = 0,
+      onSelectPhotoToEdit = () => {},
+      onImagePosChange = () => {},
+      onPhotoPosChange = () => {},
+      onSelectSecondary = () => {},
+    },
+    ref
+  ) => {
+    const property = fields.property.trim();
+    const location = fields.location.trim();
+    const price = fields.price.trim();
+    const chips = parseHighlights(fields.highlights);
+    const imageSrc = customImage || "/images/building_golf_estate.png";
 
-  return (
-    <div className="pc pc--classic" ref={ref} aria-label="Generated property creative">
-      {/* Brand strip */}
-      <header className="pc-brand">
-        <div className="pc-brand-id">
-          <LogoMark />
-          <div className="pc-brand-text">
-            <span className="pc-brand-name">
-              {BRAND.name}
-              <span className="pc-brand-suffix">{BRAND.suffix}</span>
-            </span>
-            <span className="pc-brand-tag">{BRAND.tagline}</span>
+    return (
+      <div className="pc pc--classic" ref={ref} aria-label="Generated property creative">
+        {/* Brand strip */}
+        <header className="pc-brand">
+          <div className="pc-brand-id">
+            <LogoMark />
+            <div className="pc-brand-text">
+              <span className="pc-brand-name">
+                {BRAND.name}
+                <span className="pc-brand-suffix">{BRAND.suffix}</span>
+              </span>
+              <span className="pc-brand-tag">{BRAND.tagline}</span>
+            </div>
           </div>
-        </div>
-        <span className="pc-brand-eyebrow">Featured Estate</span>
-      </header>
+          <span className="pc-brand-eyebrow">Featured Estate</span>
+        </header>
 
-      {/* Hero visual with building image */}
-      <div className="pc-hero">
-        <img
+        {/* Hero visual */}
+        <DraggableHeroImage
           src={imageSrc}
           alt="Luxury Property Building"
-          className="pc-scene-img"
+          isCustom={Boolean(customImage)}
+          secondaryImages={secondaryImages}
+          imagePos={imagePos}
+          imageZoom={imageZoom}
+          imageFit={imageFit}
+          gridStyle={gridStyle}
+          photoTransforms={photoTransforms}
+          activeEditIndex={activeEditIndex}
+          onSelectPhotoToEdit={onSelectPhotoToEdit}
+          onImagePosChange={onImagePosChange}
+          onPhotoPosChange={onPhotoPosChange}
+          onSelectSecondary={onSelectSecondary}
+          overlayElement={<div className="pc-hero-grade" />}
         />
-        <div className="pc-hero-grade" />
-      </div>
-      <Seal />
+        <Seal />
 
-      {/* Details */}
-      <div className="pc-body">
-        <div className="pc-body-top">
-          <div className="pc-headline">
-            <span className="pc-eyebrow">Now Presenting</span>
-            <h1 className="pc-title">{property || "Your property name"}</h1>
-            <p className="pc-location">
-              <PinIcon />
-              <span>{location || "Location, City"}</span>
-            </p>
+        {/* Details */}
+        <div className="pc-body">
+          <div className="pc-body-top">
+            <div className="pc-headline">
+              <span className="pc-eyebrow">Now Presenting</span>
+              <h1 className="pc-title">{property || "Your property name"}</h1>
+              <p className="pc-location">
+                <PinIcon />
+                <span>{location || "Location, City"}</span>
+              </p>
+            </div>
+
+            <div className="pc-chips">
+              {chips.length > 0 ? (
+                chips.map((c, i) => (
+                  <span className="pc-chip" key={i}>
+                    {c}
+                  </span>
+                ))
+              ) : (
+                <span className="pc-chip pc-chip--empty">Add highlights</span>
+              )}
+            </div>
           </div>
 
-          <div className="pc-chips">
-            {chips.length > 0 ? (
-              chips.map((c, i) => (
-                <span className="pc-chip" key={i}>
-                  {c}
-                </span>
-              ))
-            ) : (
-              <span className="pc-chip pc-chip--empty">Add highlights</span>
-            )}
+          <div className="pc-price">
+            <span className="pc-price-label">Starting Price</span>
+            <span className="pc-price-value">{price || "Price on request"}</span>
           </div>
         </div>
 
-        <div className="pc-price">
-          <span className="pc-price-label">Starting Price</span>
-          <span className="pc-price-value">{price || "Price on request"}</span>
-        </div>
+        {/* Contact strip */}
+        <footer className="pc-contact">
+          <span className="pc-contact-item">
+            <PhoneIcon />
+            {BRAND.phone}
+          </span>
+          <span className="pc-contact-divider" />
+          <span className="pc-contact-item">
+            <GlobeIcon />
+            {BRAND.website}
+          </span>
+        </footer>
       </div>
-
-      {/* Contact strip */}
-      <footer className="pc-contact">
-        <span className="pc-contact-item">
-          <PhoneIcon />
-          {BRAND.phone}
-        </span>
-        <span className="pc-contact-divider" />
-        <span className="pc-contact-item">
-          <GlobeIcon />
-          {BRAND.website}
-        </span>
-      </footer>
-    </div>
-  );
-});
+    );
+  }
+);
 
 ClassicGolfCard.displayName = "ClassicGolfCard";
 

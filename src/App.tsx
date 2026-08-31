@@ -4,6 +4,7 @@ import PropertyCard from "./components/PropertyCard";
 import ShareModal from "./components/ShareModal";
 import TemplateLightbox from "./components/TemplateLightbox";
 import TemplatePicker from "./components/TemplatePicker";
+import type { PhotoTransform } from "./components/DraggableHeroImage";
 import { BRAND, DEFAULTS, type PostFields } from "./lib/brand";
 import { downloadCreative, shareCreativeImage } from "./lib/download";
 import type { TemplateId } from "./lib/templates";
@@ -14,7 +15,10 @@ const CARD_H = 1350;
 export default function App() {
   const [fields, setFields] = useState<PostFields>(DEFAULTS);
   const [templateId, setTemplateId] = useState<TemplateId>("classic-golf");
-  const [customImage, setCustomImage] = useState<string | null>(null);
+  const [customImages, setCustomImages] = useState<string[]>([]);
+  const [gridStyle, setGridStyle] = useState<"single" | "split" | "grid" | "quad">("single");
+  const [activeEditIndex, setActiveEditIndex] = useState<number>(0);
+  const [photoTransforms, setPhotoTransforms] = useState<Record<number, PhotoTransform>>({});
   const [busy, setBusy] = useState(false);
   const [scale, setScale] = useState(0.4);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -23,15 +27,70 @@ export default function App() {
   const cardRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
 
+  const primaryImage = customImages[0] || null;
+  const secondaryImages = customImages.slice(1);
+
+  const getTransform = useCallback(
+    (idx: number): PhotoTransform => {
+      return photoTransforms[idx] || { pos: { x: 0, y: 0 }, zoom: 1, fit: "contain" };
+    },
+    [photoTransforms]
+  );
+
+  const activeTransform = getTransform(activeEditIndex);
+
+  const updateTransform = useCallback((idx: number, patch: Partial<PhotoTransform>) => {
+    setPhotoTransforms((prev) => ({
+      ...prev,
+      [idx]: {
+        ...(prev[idx] || { pos: { x: 0, y: 0 }, zoom: 1, fit: "contain" }),
+        ...patch,
+      },
+    }));
+  }, []);
+
+  const handlePhotoPosChange = useCallback((idx: number, pos: { x: number; y: number }) => {
+    setPhotoTransforms((prev) => ({
+      ...prev,
+      [idx]: {
+        ...(prev[idx] || { pos: { x: 0, y: 0 }, zoom: 1, fit: "contain" }),
+        pos,
+      },
+    }));
+  }, []);
+
   const update = useCallback((key: keyof PostFields, value: string) => {
     setFields((prev) => ({ ...prev, [key]: value }));
   }, []);
 
+  const resetActivePos = useCallback(() => {
+    setPhotoTransforms((prev) => ({
+      ...prev,
+      [activeEditIndex]: {
+        ...(prev[activeEditIndex] || { pos: { x: 0, y: 0 }, zoom: 1, fit: "contain" }),
+        pos: { x: 0, y: 0 },
+        zoom: 1,
+      },
+    }));
+  }, [activeEditIndex]);
+
   const reset = useCallback(() => {
     setFields(DEFAULTS);
     setTemplateId("classic-golf");
-    setCustomImage(null);
+    setCustomImages([]);
+    setGridStyle("single");
+    setActiveEditIndex(0);
+    setPhotoTransforms({});
   }, []);
+
+  const handleSwapToHero = useCallback((index: number) => {
+    if (index <= 0 || index >= customImages.length) return;
+    const copy = [...customImages];
+    const [selected] = copy.splice(index, 1);
+    copy.unshift(selected);
+    setCustomImages(copy);
+    setActiveEditIndex(0);
+  }, [customImages]);
 
   const handleDownload = useCallback(async () => {
     if (!cardRef.current || busy) return;
@@ -162,14 +221,27 @@ export default function App() {
                 <div
                   className="stage-canvas"
                   style={{ transform: `scale(${scale})` }}
-                  onClick={() => setIsLightboxOpen(true)}
-                  title="Click to open big size view"
+                  onClick={() => {
+                    if (!primaryImage) setIsLightboxOpen(true);
+                  }}
+                  title={primaryImage ? "Drag photos with cursor to edit positions" : "Click to open big size view"}
                 >
                   <PropertyCard
                     ref={cardRef}
                     fields={fields}
                     templateId={templateId}
-                    customImage={customImage}
+                    customImage={primaryImage}
+                    secondaryImages={secondaryImages}
+                    imagePos={getTransform(0).pos}
+                    imageZoom={getTransform(0).zoom}
+                    imageFit={getTransform(0).fit}
+                    gridStyle={gridStyle}
+                    photoTransforms={photoTransforms}
+                    activeEditIndex={activeEditIndex}
+                    onSelectPhotoToEdit={setActiveEditIndex}
+                    onImagePosChange={(pos) => updateTransform(0, { pos })}
+                    onPhotoPosChange={handlePhotoPosChange}
+                    onSelectSecondary={handleSwapToHero}
                   />
                 </div>
               </div>
@@ -183,8 +255,19 @@ export default function App() {
             <TemplatePicker
               selectedId={templateId}
               onSelect={setTemplateId}
-              customImage={customImage}
-              onImageChange={setCustomImage}
+              customImages={customImages}
+              onImagesChange={(imgs) => {
+                setCustomImages(imgs);
+              }}
+              imageZoom={activeTransform.zoom}
+              onZoomChange={(zoom) => updateTransform(activeEditIndex, { zoom })}
+              imageFit={activeTransform.fit}
+              onFitChange={(fit) => updateTransform(activeEditIndex, { fit })}
+              gridStyle={gridStyle}
+              onGridStyleChange={setGridStyle}
+              activeEditIndex={activeEditIndex}
+              onSelectPhotoToEdit={setActiveEditIndex}
+              onResetPos={resetActivePos}
             />
           </div>
         </aside>
@@ -196,7 +279,12 @@ export default function App() {
         onClose={() => setIsLightboxOpen(false)}
         fields={fields}
         templateId={templateId}
-        customImage={customImage}
+        customImage={primaryImage}
+        secondaryImages={secondaryImages}
+        imagePos={getTransform(0).pos}
+        imageZoom={getTransform(0).zoom}
+        imageFit={getTransform(0).fit}
+        gridStyle={gridStyle}
         onDownload={handleDownload}
         busy={busy}
       />

@@ -9,6 +9,11 @@ type Props = {
   fields: PostFields;
   templateId: TemplateId;
   customImage?: string | null;
+  secondaryImages?: string[];
+  imagePos?: { x: number; y: number };
+  imageZoom?: number;
+  imageFit?: "cover" | "contain";
+  gridStyle?: "single" | "split" | "grid" | "quad";
   onDownload: () => void;
   busy: boolean;
 };
@@ -19,6 +24,11 @@ export default function TemplateLightbox({
   fields,
   templateId,
   customImage,
+  secondaryImages = [],
+  imagePos = { x: 0, y: 0 },
+  imageZoom = 1,
+  imageFit = "contain",
+  gridStyle = "single",
   onDownload,
   busy,
 }: Props) {
@@ -53,7 +63,16 @@ export default function TemplateLightbox({
         </div>
 
         <div className="lightbox-card-wrap">
-          <PropertyCard fields={fields} templateId={templateId} customImage={customImage} />
+          <PropertyCard
+            fields={fields}
+            templateId={templateId}
+            customImage={customImage}
+            secondaryImages={secondaryImages}
+            imagePos={imagePos}
+            imageZoom={imageZoom}
+            imageFit={imageFit}
+            gridStyle={gridStyle}
+          />
         </div>
       </div>
     </div>

@@ -1,88 +1,131 @@
 import { forwardRef } from "react";
 import { BRAND, parseHighlights, type PostFields } from "../../lib/brand";
+import DraggableHeroImage, { type PhotoTransform } from "../DraggableHeroImage";
 
-type Props = { fields: PostFields; customImage?: string | null };
+type Props = {
+  fields: PostFields;
+  customImage?: string | null;
+  secondaryImages?: string[];
+  imagePos?: { x: number; y: number };
+  imageZoom?: number;
+  imageFit?: "cover" | "contain";
+  gridStyle?: "single" | "split" | "grid" | "quad";
+  photoTransforms?: Record<number, PhotoTransform>;
+  activeEditIndex?: number;
+  onSelectPhotoToEdit?: (index: number) => void;
+  onImagePosChange?: (pos: { x: number; y: number }) => void;
+  onPhotoPosChange?: (index: number, pos: { x: number; y: number }) => void;
+  onSelectSecondary?: (index: number) => void;
+};
 
-export const WaterfrontBayCard = forwardRef<HTMLDivElement, Props>(({ fields, customImage }, ref) => {
-  const property = fields.property.trim();
-  const location = fields.location.trim();
-  const price = fields.price.trim();
-  const chips = parseHighlights(fields.highlights);
-  const imageSrc = customImage || "/images/building_waterfront_villa.png";
+export const WaterfrontBayCard = forwardRef<HTMLDivElement, Props>(
+  (
+    {
+      fields,
+      customImage,
+      secondaryImages = [],
+      imagePos = { x: 0, y: 0 },
+      imageZoom = 1,
+      imageFit = "contain",
+      gridStyle = "single",
+      photoTransforms = {},
+      activeEditIndex = 0,
+      onSelectPhotoToEdit = () => {},
+      onImagePosChange = () => {},
+      onPhotoPosChange = () => {},
+      onSelectSecondary = () => {},
+    },
+    ref
+  ) => {
+    const property = fields.property.trim();
+    const location = fields.location.trim();
+    const price = fields.price.trim();
+    const chips = parseHighlights(fields.highlights);
+    const imageSrc = customImage || "/images/building_waterfront_villa.png";
 
-  return (
-    <div className="pc pc--waterfront" ref={ref} aria-label="Generated waterfront bay creative">
-      {/* Ocean Header */}
-      <header className="wb-header">
-        <div className="wb-brand">
-          <div className="wb-logo-mark">
-            <AnchorIcon />
-          </div>
-          <div>
-            <div className="wb-brand-name">
-              {BRAND.name} <span>{BRAND.suffix}</span>
+    return (
+      <div className="pc pc--waterfront" ref={ref} aria-label="Generated waterfront bay creative">
+        {/* Ocean Header */}
+        <header className="wb-header">
+          <div className="wb-brand">
+            <div className="wb-logo-mark">
+              <AnchorIcon />
             </div>
-            <div className="wb-brand-tag">Coastal &amp; Waterfront Estates</div>
+            <div>
+              <div className="wb-brand-name">
+                {BRAND.name} <span>{BRAND.suffix}</span>
+              </div>
+              <div className="wb-brand-tag">Coastal &amp; Waterfront Estates</div>
+            </div>
           </div>
-        </div>
-        <div className="wb-badge">Waterfront View</div>
-      </header>
+          <div className="wb-badge">Waterfront View</div>
+        </header>
 
-      {/* Ocean Hero Visual */}
-      <div className="wb-hero">
-        <img
+        {/* Draggable Ocean Hero Visual */}
+        <DraggableHeroImage
           src={imageSrc}
           alt="Waterfront Property"
-          className="pc-scene-img"
+          isCustom={Boolean(customImage)}
+          secondaryImages={secondaryImages}
+          imagePos={imagePos}
+          imageZoom={imageZoom}
+          imageFit={imageFit}
+          gridStyle={gridStyle}
+          photoTransforms={photoTransforms}
+          activeEditIndex={activeEditIndex}
+          onSelectPhotoToEdit={onSelectPhotoToEdit}
+          onImagePosChange={onImagePosChange}
+          onPhotoPosChange={onPhotoPosChange}
+          onSelectSecondary={onSelectSecondary}
+          overlayElement={<div className="wb-hero-overlay" />}
         />
-        <div className="wb-hero-overlay" />
-      </div>
 
-      {/* Body Content */}
-      <div className="wb-body">
-        <div className="wb-body-top">
-          <span className="wb-eyebrow">Prime Coastal Living</span>
-          <h1 className="wb-title">{property || "Your property name"}</h1>
-          <p className="wb-location">
-            <CompassIcon />
-            <span>{location || "Location, City"}</span>
-          </p>
+        {/* Body Content */}
+        <div className="wb-body">
+          <div className="wb-body-top">
+            <span className="wb-eyebrow">Prime Coastal Living</span>
+            <h1 className="wb-title">{property || "Your property name"}</h1>
+            <p className="wb-location">
+              <CompassIcon />
+              <span>{location || "Location, City"}</span>
+            </p>
 
-          <div className="wb-chips">
-            {chips.length > 0 ? (
-              chips.map((c, i) => (
-                <span className="wb-chip" key={i}>
-                  {c}
-                </span>
-              ))
-            ) : (
-              <span className="wb-chip wb-chip--empty">Add highlights</span>
-            )}
+            <div className="wb-chips">
+              {chips.length > 0 ? (
+                chips.map((c, i) => (
+                  <span className="wb-chip" key={i}>
+                    {c}
+                  </span>
+                ))
+              ) : (
+                <span className="wb-chip wb-chip--empty">Add highlights</span>
+              )}
+            </div>
+          </div>
+
+          {/* Price Card */}
+          <div className="wb-price-card">
+            <div className="wb-price-label">Offer Price</div>
+            <div className="wb-price-val">{price || "Price on request"}</div>
           </div>
         </div>
 
-        {/* Price Card */}
-        <div className="wb-price-card">
-          <div className="wb-price-label">Offer Price</div>
-          <div className="wb-price-val">{price || "Price on request"}</div>
-        </div>
+        {/* Footer Contact */}
+        <footer className="wb-footer">
+          <div className="wb-contact-item">
+            <PhoneIcon />
+            <span>{BRAND.phone}</span>
+          </div>
+          <div className="wb-footer-divider" />
+          <div className="wb-contact-item">
+            <GlobeIcon />
+            <span>{BRAND.website}</span>
+          </div>
+        </footer>
       </div>
-
-      {/* Footer Contact */}
-      <footer className="wb-footer">
-        <div className="wb-contact-item">
-          <PhoneIcon />
-          <span>{BRAND.phone}</span>
-        </div>
-        <div className="wb-footer-divider" />
-        <div className="wb-contact-item">
-          <GlobeIcon />
-          <span>{BRAND.website}</span>
-        </div>
-      </footer>
-    </div>
-  );
-});
+    );
+  }
+);
 
 WaterfrontBayCard.displayName = "WaterfrontBayCard";
 

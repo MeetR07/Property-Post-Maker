@@ -1,85 +1,128 @@
 import { forwardRef } from "react";
 import { BRAND, parseHighlights, type PostFields } from "../../lib/brand";
+import DraggableHeroImage, { type PhotoTransform } from "../DraggableHeroImage";
 
-type Props = { fields: PostFields; customImage?: string | null };
+type Props = {
+  fields: PostFields;
+  customImage?: string | null;
+  secondaryImages?: string[];
+  imagePos?: { x: number; y: number };
+  imageZoom?: number;
+  imageFit?: "cover" | "contain";
+  gridStyle?: "single" | "split" | "grid" | "quad";
+  photoTransforms?: Record<number, PhotoTransform>;
+  activeEditIndex?: number;
+  onSelectPhotoToEdit?: (index: number) => void;
+  onImagePosChange?: (pos: { x: number; y: number }) => void;
+  onPhotoPosChange?: (index: number, pos: { x: number; y: number }) => void;
+  onSelectSecondary?: (index: number) => void;
+};
 
-export const MinimalGalleryCard = forwardRef<HTMLDivElement, Props>(({ fields, customImage }, ref) => {
-  const property = fields.property.trim();
-  const location = fields.location.trim();
-  const price = fields.price.trim();
-  const chips = parseHighlights(fields.highlights);
-  const imageSrc = customImage || "/images/building_minimal_mansion.png";
+export const MinimalGalleryCard = forwardRef<HTMLDivElement, Props>(
+  (
+    {
+      fields,
+      customImage,
+      secondaryImages = [],
+      imagePos = { x: 0, y: 0 },
+      imageZoom = 1,
+      imageFit = "contain",
+      gridStyle = "single",
+      photoTransforms = {},
+      activeEditIndex = 0,
+      onSelectPhotoToEdit = () => {},
+      onImagePosChange = () => {},
+      onPhotoPosChange = () => {},
+      onSelectSecondary = () => {},
+    },
+    ref
+  ) => {
+    const property = fields.property.trim();
+    const location = fields.location.trim();
+    const price = fields.price.trim();
+    const chips = parseHighlights(fields.highlights);
+    const imageSrc = customImage || "/images/building_minimal_mansion.png";
 
-  return (
-    <div className="pc pc--minimal" ref={ref} aria-label="Generated minimal gallery creative">
-      {/* Minimal Header */}
-      <header className="mg-header">
-        <div className="mg-brand">
-          <div className="mg-logo-mark">UN</div>
-          <div>
-            <div className="mg-brand-name">
-              {BRAND.name} <span>{BRAND.suffix}</span>
+    return (
+      <div className="pc pc--minimal" ref={ref} aria-label="Generated minimal gallery creative">
+        {/* Minimal Header */}
+        <header className="mg-header">
+          <div className="mg-brand">
+            <div className="mg-logo-mark">UN</div>
+            <div>
+              <div className="mg-brand-name">
+                {BRAND.name} <span>{BRAND.suffix}</span>
+              </div>
+              <div className="mg-brand-tag">{BRAND.tagline}</div>
             </div>
-            <div className="mg-brand-tag">{BRAND.tagline}</div>
           </div>
-        </div>
-        <div className="mg-badge">Exclusive Listing</div>
-      </header>
+          <div className="mg-badge">Exclusive Listing</div>
+        </header>
 
-      {/* Hero Visual */}
-      <div className="mg-hero">
-        <img
+        {/* Draggable Hero Visual */}
+        <DraggableHeroImage
           src={imageSrc}
           alt="Minimalist Mansion"
-          className="pc-scene-img"
+          isCustom={Boolean(customImage)}
+          secondaryImages={secondaryImages}
+          imagePos={imagePos}
+          imageZoom={imageZoom}
+          imageFit={imageFit}
+          gridStyle={gridStyle}
+          photoTransforms={photoTransforms}
+          activeEditIndex={activeEditIndex}
+          onSelectPhotoToEdit={onSelectPhotoToEdit}
+          onImagePosChange={onImagePosChange}
+          onPhotoPosChange={onPhotoPosChange}
+          onSelectSecondary={onSelectSecondary}
         />
-      </div>
 
-      {/* Body Content */}
-      <div className="mg-body">
-        <div className="mg-body-top">
-          <span className="mg-eyebrow">Architectural Collection</span>
-          <h1 className="mg-title">{property || "Your property name"}</h1>
-          <p className="mg-location">
-            <PinIcon />
-            <span>{location || "Location, City"}</span>
-          </p>
+        {/* Body Content */}
+        <div className="mg-body">
+          <div className="mg-body-top">
+            <span className="mg-eyebrow">Architectural Collection</span>
+            <h1 className="mg-title">{property || "Your property name"}</h1>
+            <p className="mg-location">
+              <PinIcon />
+              <span>{location || "Location, City"}</span>
+            </p>
 
-          <div className="mg-chips">
-            {chips.length > 0 ? (
-              chips.map((c, i) => (
-                <span className="mg-chip" key={i}>
-                  {c}
-                </span>
-              ))
-            ) : (
-              <span className="mg-chip mg-chip--empty">Add highlights</span>
-            )}
+            <div className="mg-chips">
+              {chips.length > 0 ? (
+                chips.map((c, i) => (
+                  <span className="mg-chip" key={i}>
+                    {c}
+                  </span>
+                ))
+              ) : (
+                <span className="mg-chip mg-chip--empty">Add highlights</span>
+              )}
+            </div>
+          </div>
+
+          {/* Price Card */}
+          <div className="mg-price-card">
+            <div className="mg-price-label">Price Guide</div>
+            <div className="mg-price-val">{price || "Price on request"}</div>
           </div>
         </div>
 
-        {/* Price Card */}
-        <div className="mg-price-card">
-          <div className="mg-price-label">Price Guide</div>
-          <div className="mg-price-val">{price || "Price on request"}</div>
-        </div>
+        {/* Footer Contact */}
+        <footer className="mg-footer">
+          <div className="mg-contact-item">
+            <PhoneIcon />
+            <span>{BRAND.phone}</span>
+          </div>
+          <div className="mg-footer-divider" />
+          <div className="mg-contact-item">
+            <GlobeIcon />
+            <span>{BRAND.website}</span>
+          </div>
+        </footer>
       </div>
-
-      {/* Footer Contact */}
-      <footer className="mg-footer">
-        <div className="mg-contact-item">
-          <PhoneIcon />
-          <span>{BRAND.phone}</span>
-        </div>
-        <div className="mg-footer-divider" />
-        <div className="mg-contact-item">
-          <GlobeIcon />
-          <span>{BRAND.website}</span>
-        </div>
-      </footer>
-    </div>
-  );
-});
+    );
+  }
+);
 
 MinimalGalleryCard.displayName = "MinimalGalleryCard";
 
